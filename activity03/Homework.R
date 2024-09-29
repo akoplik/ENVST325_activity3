@@ -39,6 +39,33 @@ ggplot(datCO2_ten, aes(x = Year, y = cumCO2/1000000000, colour = Entity)) +
 #               on one graph and world air temperature anomalies on the 
 #               other graph.
 
+worldCO2 <- datCO2 %>% filter(Entity == "World") %>% filter(Year >= 1880)
+
+wpCO2 <- ggplot(worldCO2, aes(x = Year, y = CO2/1000000000,)) +
+  geom_area(fill = "orchid") +
+  labs(title =bquote("Year-Over_Year"~CO[2]~"Emissions"),
+       y = bquote("Annual"~CO[2]~"Emissions (trillions of tons)")) +
+  scale_color_manual(values = pallette)+
+  theme_classic()
+
+worldTemp <- hemCO2 %>% filter(Entity == "World")
+worldTemp$Year <- year(worldTemp$Day)
+worldTemp <- worldTemp %>% group_by(Year) %>% summarise(
+  temp_anom = sum(temperature_anomaly)
+)
+
+wpT <- ggplot(worldTemp, aes(x = Year, y = temp_anom)) +
+  geom_area(fill = "orchid", show.legend = F) +
+  labs(title = "Year-Over-Year World Air Temperature",
+       x = "Date",
+       y = "Temperature Anomaly (C)") +
+  scale_color_manual(values = pallette)+
+  ylim(-13,13)+
+  theme_classic()
+
+#install.packages("ggpubr")
+library(ggpubr)
+ggarrange(wpCO2, wpT)
 # Question 3: Look up any type of environmental data of your interest in 
 #               our world in data (link in tutorial). Download the csv 
 #               and upload it to RStudio Cloud. Remake the graph. 
