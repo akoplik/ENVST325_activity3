@@ -74,4 +74,40 @@ ggarrange(wpCO2, wpT)
 #               considered principles of visualization in making your graph. 
 #               Explain the main conclusion of the graph.
 
+pollution_deaths <- read.csv("activity03/pollution-deaths-from-fossil-fuels.csv")
+emissions <- datCO2_countries
+population <- read.csv('activity03/population.csv')
+
+pollution_data <- inner_join(emissions, pollution_deaths, by = c('Entity', 'Code','Year'))
+pollution_data <- inner_join(pollution_data, population, by = c('Entity', 'Code','Year'))
+
+names(pollution_data)[5]="deaths"
+names(pollution_data)[6]="population"
+pollution_data <- pollution_data %>%
+  mutate(excess_death_rate = deaths / population,
+         deaths_per_ton = deaths / CO2) %>%
+  arrange(desc(CO2/population)) %>%
+  mutate(emitter_rank = row(pollution_data[1])) %>% 
+  arrange(desc(excess_death_rate)) %>%
+  mutate(excess_death_rank = row(pollution_data[1]))
+
+names(pollution_data)[9]="emitter_rank"
+
+pollution_data_ten <- pollution_data %>% top_n(10, deaths_per_ton)
+
+ggplot(pollution_data, aes(x= emitter_rank, y=excess_death_rank)) +
+  geom_label(aes(label = Entity),  label.size = 0.05, size = 3)+
+  labs(title = "Burden v. Fault for Carbon Emissions in 2015",
+       subtitle = "Ranking based on per-capita statistics",
+       x = bquote(~CO[2]~"Emitter Rate Rank"),
+       y = "Excess Death Rate Rank",
+       caption = "Data: ourworldindata.org") +
+  xlim(180, 0)+
+  ylim(180,0)+
+  geom_abline(slope = 1, linetype = "dashed")+
+
+  annotate("text", x = 0, y = 175,hjust = 1, label = "High Fault, Low Burden", color = "red")+
+  annotate("text", x = 175, y = 0,hjust = 0, label = "Low Fault, High Burden", color = "red")+
+  theme_classic()
+
 # Question 4: Copy the URL to your R script here.
